@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 生活リズム管理アプリ (Lifestyle Tracker)
 
-## Getting Started
+復職に向けた生活リズム（睡眠・体調・メモ）を記録・可視化するためのWebアプリケーションです。
 
-First, run the development server:
+## 📁 実務を意識したフォルダ構成（関心の分離）
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+このプロジェクトでは、コードの可読性・保守性を高めるため、**「HTML（構造）」「CSS（デザイン）」「TS（ロジック）」を3つのファイルに分離**して管理しています。
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+lifestyle-tracker/
+├── src/
+│   ├── app/                      # ページとルーティング (Next.js App Router)
+│   │   ├── layout.tsx            # 全体共通レイアウト
+│   │   ├── page.tsx              # トップ画面
+│   │   └── api/
+│   │       └── records/          # [Step 3で実装予定] データ保存・取得API
+│   │           └── route.ts
+│   │
+│   ├── components/
+│   │   └── features/             # 機能別コンポーネント
+│   │       └── records/          # 生活記録フォーム機能
+│   │           ├── RecordForm.tsx        # 【役割1：構造】HTML (JSX) の組み立て
+│   │           ├── RecordForm.module.css # 【役割2：デザイン】CSS Moduleによるスタイル定義
+│   │           └── useRecordForm.ts      # 【役割3：ロジック】カスタムフックによる状態・処理管理
+│   │
+│   └── types/                    # TypeScriptの型定義
+│       └── index.ts              # LifeRecord型（日付、睡眠時間、体調など）
+│
+└── tsconfig.json                 # エイリアス設定 ("@/*": ["./src/*"])
