@@ -1,0 +1,76 @@
+/* フォーム全体のカード枠 */
+.formCard {
+    max-width: 450px;
+    margin: 0 auto;
+    padding: 24px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    color: #333333;
+}
+
+/* タイトル */
+.title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* 各入力行のグループ */
+.fieldGroup {
+    margin-bottom: 16px;
+}
+
+/* 起床・就寝時間を横並びにするレイアウト */
+.timeGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+/* ラベル */
+.label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #4b5563;
+}
+
+/* 入力フォーム共通（input, select, textarea） */
+.input,
+.select,
+.textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+}
+
+.textarea {
+    height: 80px;
+    resize: vertical;
+}
+
+/* 送信ボタン */
+.submitButton {
+    width: 100%;
+    padding: 10px;
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.submitButton:hover {
+    background-color: #1d4ed8;
+}
