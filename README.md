@@ -30,18 +30,17 @@ lifestyle-tracker/
 ```
 
 ## 🛠 使用技術（Tech Stack）
-```text
+
   ・Framework: Next.js (App Router)
   ・Language: TypeScript
   ・Style: CSS Modules
   ・Deployment: Vercel
-```
+
 
 ## 📝 開発時の学び・メモ
 
-```text
 CSS Modulesの採用理由: 1ファイルにクラス名やスタイルが溢れるのを防ぎ、従来の「見た目の分離」と「保守性の向上」を両立するため。
 
 カスタムフック (useRecordForm): 画面の見た目（JSX）から状態管理（useState）や送信処理のロジックを切り離し、役割を明確化。
-```
+
 
