@@ -8,25 +8,21 @@
 
 ```text
 lifestyle-tracker/
-├── src/
-│   ├── app/                      # ページとルーティング (Next.js App Router)
-│   │   ├── layout.tsx            # 全体共通レイアウト
-│   │   ├── page.tsx              # トップ画面
-│   │   └── api/
-│   │       └── records/          # [Step 3で実装予定] データ保存・取得API
-│   │           └── route.ts
-│   │
-│   ├── components/
-│   │   └── features/             # 機能別コンポーネント
-│   │       └── records/          # 生活記録フォーム機能
-│   │           ├── RecordForm.tsx        # 【役割1：構造】HTML (JSX) の組み立て
-│   │           ├── RecordForm.module.css # 【役割2：デザイン】CSS Moduleによるスタイル定義
-│   │           └── useRecordForm.ts      # 【役割3：ロジック】カスタムフックによる状態・処理管理
-│   │
-│   └── types/                    # TypeScriptの型定義
-│       └── index.ts              # LifeRecord型（日付、睡眠時間、体調など）
-│
-└── tsconfig.json                 # エイリアス設定 ("@/*": ["./src/*"])
+├── app/
+│   ├── layout.tsx            # 全体共通のレイアウト（ヘッダー/フッターなど）
+│   ├── page.tsx              # トップページ（/）：入力フォーム専用
+│   ├── records/
+│   │   └── page.tsx          # 履歴一覧ページ（/records）：一覧テーブル表示
+│   └── api/
+│       └── records/
+│           └── route.ts      # APIエンドポイント（POST: 保存 / GET: 取得）
+├── components/
+│   ├── RecordForm.tsx        # 入力フォームコンポーネント
+│   ├── RecordTable.tsx       # 履歴テーブルコンポーネント（切り出すとさらにスッキリ！）
+│   └── Navigation.tsx        # ページ移動用ナビゲーション（任意）
+├── types/
+│   └── index.ts              # 型定義（RecordItem など）
+└── public/
 ```
 
 ## 🛠 使用技術（Tech Stack）
