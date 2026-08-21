@@ -24,3 +24,77 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* 記録ページ専用スタイル */
+.records-container {
+  min-height: 100vh;
+  padding: 1rem;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.records-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.records-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.back-button {
+  font-size: 0.875rem;
+  background-color: #f3f4f6;
+  color: #374151;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  text-decoration: none;
+}
+
+.records-card {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+/* テーブル全体の文字色を濃い黒に指定 */
+.records-table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  color: #1f2937; /* ★文字色を濃いグレー（見やすい黒）に設定 */
+}
+
+/* ヘッダー（見出し）の文字 */
+.records-table th {
+  background-color: #f3f4f6;
+  color: #111827; /* ★より濃い黒 */
+  font-weight: 600;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* データ行の文字 */
+.records-table td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #1f2937; /* ★文字色をくっきり */
+  font-size: 0.9rem;
+}
+
+.status-message {
+  color: #6b7280;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.error-message {
+  color: #ef4444;
+  text-align: center;
+  padding: 1rem 0;
+}
