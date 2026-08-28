@@ -12,3 +12,19 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   line-height: 1.5;
 }
+
+/* PDF出力時の強制スタイル（ダークモード白飛び対策） */
+.print-mode,
+.print-mode * {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.print-mode .recharts-text {
+  fill: #000000 !important;
+}
+
+.print-mode .recharts-cartesian-grid-horizontal line,
+.print-mode .recharts-cartesian-grid-vertical line {
+  stroke: #cccccc !important;
+}
