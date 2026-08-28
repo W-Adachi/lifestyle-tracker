@@ -98,3 +98,20 @@ body {
   text-align: center;
   padding: 1rem 0;
 }
+/* 印刷・PDF保存時の専用設定 */
+@media print {
+  /* 印刷に不要な要素（ボタンなど）を隠す */
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background-color: #fff !important;
+    color: #000 !important;
+  }
+
+  /* ページ途中でグラフやテーブルが途切れないようにする */
+  svg {
+    max-width: 100% !important;
+  }
+}

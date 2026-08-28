@@ -1,10 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+    } from "recharts";
 
-// スプレッドシートから受け取るデータの型定義
-type RecordItem = {
+    type RecordType = {
     id: number;
     date: string;
     wakeTime: string;
@@ -14,74 +22,116 @@ type RecordItem = {
     };
 
     export default function RecordsPage() {
-    const [records, setRecords] = useState<RecordItem[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [records, setRecords] = useState<RecordType[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // API (/api/records) からデータを取得する処理
-    const fetchRecords = async () => {
-        try {
-        setLoading(true);
-        const res = await fetch("/api/records");
-        const data = await res.json();
-        if (res.ok) {
-            setRecords(data.records || []);
-        }
-        } catch (error) {
-        console.error("データの取得に失敗しました", error);
-        } finally {
-        setLoading(false);
-        }
-    };
-
-    // 画面が開いたときに自動でデータを読み込む
     useEffect(() => {
-        fetchRecords();
+        fetch("/api/records")
+        .then((res) => res.json())
+        .then((data) => {
+            setRecords(data.records || []);
+            setLoading(false);
+        })
+        .catch(() => setLoading(false));
     }, []);
 
+    // 睡眠時間を「時間（数値）」に簡易計算する関数（例: 23:00〜7:00 -> 8時間）
+    const calculateSleepHours = (bed: string, wake: string) => {
+        if (!bed || !wake) return null;
+        const [bH, bM] = bed.split(":").map(Number);
+        const [wH, wM] = wake.split(":").map(Number);
+        if (isNaN(bH) || isNaN(wH)) return null;
+
+        let bedMin = bH * 60 + (bM || 0);
+        let wakeMin = wH * 60 + (wM || 0);
+        if (wakeMin < bedMin) wakeMin += 24 * 60; // 日をまたぐ場合
+
+        return Number(((wakeMin - bedMin) / 60).toFixed(1));
+    };
+
+    // グラフ用にデータを整形
+    const chartData = records
+        .slice()
+        .reverse() // 日付順（古い順）に並べ替え
+        .map((r) => ({
+        date: r.date.slice(5), // "MM-DD" 表記に短縮
+        sleepHours: calculateSleepHours(r.bedTime, r.wakeTime),
+        mood: Number(r.mood) || null,
+        }));
+
+    // PDF保存（印刷ダイアログ呼出）
+    const handlePrint = () => {
+        window.print();
+    };
+
+    if (loading) return <p style={{ padding: "20px" }}>読み込み中...</p>;
+
     return (
-        <main className="min-h-screen p-4 max-w-3xl mx-auto space-y-6">
-        <div className="flex justify-between items-center my-4">
-            <h1 className="text-2xl font-bold">過去の生活記録</h1>
-            <Link
-            href="/"
-            className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-md transition"
+        <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
+        {/* 印刷時には非表示になる操作エリア */}
+        <div className="no-print" style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2>生活リズム記録レポート</h2>
+            <button
+            onClick={handlePrint}
+            style={{
+                padding: "10px 20px",
+                backgroundColor: "#2563eb",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                fontWeight: "bold",
+                cursor: "pointer",
+            }}
             >
-            ⬅ 記録をつける
-            </Link>
+            📄 PDFで保存・印刷する
+            </button>
         </div>
 
-        <section className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-            {loading ? (
-            <p className="text-gray-500 text-center py-4">読み込み中...</p>
-            ) : records.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">まだ記録がありません。</p>
-            ) : (
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                <thead>
-                    <tr className="border-b bg-gray-50 text-sm">
-                    <th className="p-2">日付</th>
-                    <th className="p-2">起床</th>
-                    <th className="p-2">就寝</th>
-                    <th className="p-2">気分</th>
-                    <th className="p-2">メモ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {records.map((item) => (
-                    <tr key={item.id} className="border-b hover:bg-gray-50 text-sm">
-                        <td className="p-2 whitespace-nowrap font-medium">{item.date}</td>
-                        <td className="p-2 whitespace-nowrap">{item.wakeTime}</td>
-                        <td className="p-2 whitespace-nowrap">{item.bedTime}</td>
-                        <td className="p-2 whitespace-nowrap">{item.mood}</td>
-                        <td className="p-2 min-w-[150px]">{item.memo}</td>
-                    </tr>
-                    ))}
-                </tbody>
-                </table>
+        {/* --- グラフエリア --- */}
+        <div style={{ marginBottom: "40px", backgroundColor: "#fff", padding: "15px", borderRadius: "8px", border: "1px solid #ddd" }}>
+            <h3>睡眠時間 & 気分の推移</h3>
+            <div style={{ width: "100%", height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis yAxisId="left" domain={[0, 12]} label={{ value: "睡眠時間(h)", angle: -90, position: "insideLeft" }} />
+                <YAxis yAxisId="right" orientation="right" domain={[1, 5]} label={{ value: "気分(1-5)", angle: 90, position: "insideRight" }} />
+                <Tooltip />
+                <Legend />
+                <Line yAxisId="left" type="monotone" dataKey="sleepHours" name="睡眠時間(時間)" stroke="#2563eb" strokeWidth={2} />
+                <Line yAxisId="right" type="monotone" dataKey="mood" name="気分" stroke="#16a34a" strokeWidth={2} />
+                </LineChart>
+            </ResponsiveContainer>
             </div>
-            )}
-        </section>
-        </main>
+        </div>
+
+        {/* --- テーブル（記録一覧）エリア --- */}
+        <div>
+            <h3>記録一覧</h3>
+            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+            <thead>
+                <tr style={{ backgroundColor: "#f3f4f6", borderBottom: "2px solid #ccc" }}>
+                <th style={{ padding: "8px" }}>日付</th>
+                <th style={{ padding: "8px" }}>起床時間</th>
+                <th style={{ padding: "8px" }}>就寝時間</th>
+                <th style={{ padding: "8px" }}>気分</th>
+                <th style={{ padding: "8px" }}>メモ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {records.map((r) => (
+                <tr key={r.id} style={{ borderBottom: "1px solid #eee" }}>
+                    <td style={{ padding: "8px" }}>{r.date}</td>
+                    <td style={{ padding: "8px" }}>{r.wakeTime}</td>
+                    <td style={{ padding: "8px" }}>{r.bedTime}</td>
+                    <td style={{ padding: "8px" }}>{r.mood}</td>
+                    <td style={{ padding: "8px", fontSize: "0.85rem" }}>{r.memo}</td>
+                </tr>
+                ))}
+            </tbody>
+            </table>
+        </div>
+        </div>
     );
 }
