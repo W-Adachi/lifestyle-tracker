@@ -125,21 +125,29 @@ export default function RecordsPage() {
             <table className={styles.table}>
                 <thead>
                 <tr className={styles.thHeaderGroup}>
-                    <th className={styles.th} style={{ width: "70px" }} rowSpan={2}>日付</th>
+                    {/* rowSpanを除外し、下部のボーダーを消す */}
+                    <th className={styles.th} style={{ width: "70px", borderBottom: "none", verticalAlign: "bottom", paddingBottom: "2px" }}>日付</th>
                     <th className={styles.th} colSpan={24}>1日の生活パターン (5:00 〜 翌4:00)</th>
-                    <th className={styles.th} style={{ width: "45px" }} rowSpan={2}>睡眠<br />時間</th>
+                    <th className={styles.th} style={{ width: "45px", borderBottom: "none", verticalAlign: "bottom", paddingBottom: "2px" }}>睡眠<br />時間</th>
                     <th className={styles.th} colSpan={4}>夕べの睡眠について</th>
                     <th className={styles.th} colSpan={3}>疲労度</th>
                     <th className={styles.th} colSpan={3}>気分</th>
                     <th className={styles.th} colSpan={3}>体調</th>
                     <th className={styles.th} colSpan={2}>食事</th>
                     <th className={styles.th} colSpan={2}>服薬</th>
-                    <th className={styles.th} style={{ width: "90px" }} rowSpan={2}>メモ</th>
+                    <th className={styles.th} style={{ width: "90px", borderBottom: "none", verticalAlign: "bottom", paddingBottom: "2px" }}>メモ</th>
                 </tr>
                 <tr className={styles.thHeaderSub}>
+                    {/* 日付の下半分（空セル・上罫線なし・背景色合わせ） */}
+                    <th className={styles.th} style={{ borderTop: "none", backgroundColor: "#e5e7eb" }}></th>
+
                     {HOURS.map((h) => (
                     <th key={h} className={styles.thHour}>{h}</th>
                     ))}
+
+                    {/* 睡眠時間の下半分（空セル・上罫線なし・背景色合わせ） */}
+                    <th className={styles.th} style={{ borderTop: "none", backgroundColor: "#e5e7eb" }}></th>
+
                     {/* 睡眠詳細 */}
                     <th className={styles.th}>寝つき</th>
                     <th className={styles.th}>中途覚醒</th>
@@ -163,6 +171,9 @@ export default function RecordsPage() {
                     {/* 服薬 */}
                     <th className={styles.th}>済</th>
                     <th className={styles.th}>未</th>
+
+                    {/* メモの下半分（空セル・上罫線なし・背景色合わせ） */}
+                    <th className={styles.th} style={{ borderTop: "none", backgroundColor: "#e5e7eb" }}></th>
                 </tr>
                 </thead>
                 <tbody>
