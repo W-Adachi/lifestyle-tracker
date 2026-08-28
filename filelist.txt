@@ -1,0 +1,27 @@
+src/
+├── app/                        # ページ定義（ルーティング専用）
+│   ├── layout.tsx              # ルートレイアウト
+│   ├── page.tsx                # トップページ
+│   └── records/
+│       └── page.tsx            # 記録ページ
+│
+├── components/                 # コンポーネント（見た目とロジック）
+│   ├── ui/                     # 最小単位の共通パーツ
+│   │   ├── Input.tsx
+│   │   ├── Input.module.css
+│   │   ├── Select.tsx
+│   │   └── Select.module.css
+│   │
+│   └── features/               # 機能別の複合パーツ
+│       └── record/
+│           ├── RecordForm.tsx
+│           ├── RecordForm.module.css
+│           ├── TimePicker.tsx
+│           └── TimePicker.module.css
+│
+├── styles/                     # 全体デザイン・CSS変数
+│   ├── globals.css
+│   └── variables.css
+│
+└── lib/                        # Supabase等の設定や共通関数
+    └── supabase.ts             # （例）Supabaseの初期化コード
