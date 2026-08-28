@@ -35,7 +35,6 @@ import {
         .catch(() => setLoading(false));
     }, []);
 
-    // 睡眠時間を「時間（数値）」に簡易計算する関数（例: 23:00〜7:00 -> 8時間）
     const calculateSleepHours = (bed: string, wake: string) => {
         if (!bed || !wake) return null;
         const [bH, bM] = bed.split(":").map(Number);
@@ -44,22 +43,20 @@ import {
 
         let bedMin = bH * 60 + (bM || 0);
         let wakeMin = wH * 60 + (wM || 0);
-        if (wakeMin < bedMin) wakeMin += 24 * 60; // 日をまたぐ場合
+        if (wakeMin < bedMin) wakeMin += 24 * 60;
 
         return Number(((wakeMin - bedMin) / 60).toFixed(1));
     };
 
-    // グラフ用にデータを整形
     const chartData = records
         .slice()
-        .reverse() // 日付順（古い順）に並べ替え
+        .reverse()
         .map((r) => ({
-        date: r.date.slice(5), // "MM-DD" 表記に短縮
+        date: r.date.slice(5),
         sleepHours: calculateSleepHours(r.bedTime, r.wakeTime),
         mood: Number(r.mood) || null,
         }));
 
-    // PDF保存（印刷ダイアログ呼出）
     const handlePrint = () => {
         window.print();
     };
@@ -68,13 +65,27 @@ import {
 
     return (
         <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
-        {/* 印刷時には非表示になる操作エリア */}
+        {/* 印刷時に隠すエリア */}
         <div className="no-print" style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h2>生活リズム記録レポート</h2>
+            <a
+            href="/"
+            style={{
+                padding: "8px 14px",
+                backgroundColor: "#e5e7eb",
+                color: "#374151",
+                borderRadius: "6px",
+                textDecoration: "none",
+                fontWeight: "bold",
+                fontSize: "0.9rem",
+            }}
+            >
+            ← 入力画面へ戻る
+            </a>
+            
             <button
             onClick={handlePrint}
             style={{
-                padding: "10px 20px",
+                padding: "8px 16px",
                 backgroundColor: "#2563eb",
                 color: "#fff",
                 border: "none",
@@ -87,9 +98,11 @@ import {
             </button>
         </div>
 
-        {/* --- グラフエリア --- */}
+        <h2>生活リズム記録レポート</h2>
+
+        {/* グラフエリア */}
         <div style={{ marginBottom: "40px", backgroundColor: "#fff", padding: "15px", borderRadius: "8px", border: "1px solid #ddd" }}>
-            <h3>睡眠時間 & 気分の推移</h3>
+            <h3 style={{ marginTop: 0 }}>睡眠時間 & 気分の推移</h3>
             <div style={{ width: "100%", height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
@@ -106,7 +119,7 @@ import {
             </div>
         </div>
 
-        {/* --- テーブル（記録一覧）エリア --- */}
+        {/* 一覧テーブル */}
         <div>
             <h3>記録一覧</h3>
             <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
