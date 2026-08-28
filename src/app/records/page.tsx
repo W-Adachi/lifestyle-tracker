@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
     LineChart,
     Line,
@@ -13,8 +13,8 @@ import {
     } from "recharts";
 
     type RecordType = {
-    id: number;       // 表示上の連番
-    rowIndex: number; // スプレッドシート上の行番号（2, 3, 4...）
+    id: number;
+    rowIndex: number;
     date: string;
     wakeTime: string;
     bedTime: string;
@@ -25,7 +25,8 @@ import {
     export default function RecordsPage() {
     const [records, setRecords] = useState<RecordType[]>([]);
     const [loading, setLoading] = useState(true);
-    const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc"); // desc: 最新順, asc: 古い順
+    const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+    const [filterPeriod, setFilterPeriod] = useState<string>("1week"); // 初期表示を直近1週間に設定
 
     const fetchRecords = () => {
         setLoading(true);
@@ -33,10 +34,9 @@ import {
         .then((res) => res.json())
         .then((data) => {
             const rawRows = data.records || [];
-            // スプレッドシートの実際の行番号（2行目スタート）を紐付ける
             const formatted = rawRows.map((r: any, index: number) => ({
             ...r,
-            rowIndex: index + 2, // A2から始まっているため +2
+            rowIndex: index + 2,
             }));
             setRecords(formatted);
             setLoading(false);
@@ -72,7 +72,7 @@ import {
         });
         if (res.ok) {
             alert("削除しました");
-            fetchRecords(); // 一覧を再取得
+            fetchRecords();
         } else {
             alert("削除に失敗しました");
         }
@@ -82,23 +82,45 @@ import {
         }
     };
 
-    // 並べ替え適用後のレコードリスト
-    const sortedRecords = [...records].sort((a, b) => {
-        if (sortOrder === "desc") {
-        return b.date.localeCompare(a.date); // 最新順（降順）
-        } else {
-        return a.date.localeCompare(b.date); // ⭕ a と b を比較して昇順（古い順）にする
+    // 絞り込み ＆ ソート済みのデータを算出
+    const filteredAndSortedRecords = useMemo(() => {
+        const now = new Date();
+
+        const filtered = records.filter((r) => {
+        if (filterPeriod === "all") return true;
+
+        const recordDate = new Date(r.date);
+        const diffTime = now.getTime() - recordDate.getTime();
+        const diffDays = diffTime / (1000 * 3600 * 24);
+
+        if (filterPeriod === "1week") {
+            return diffDays >= 0 && diffDays <= 7;
         }
-    });
-    
-    // グラフ用データ（時系列順＝古い順に固定）
-    const chartData = [...records]
+        if (filterPeriod === "1month") {
+            return diffDays >= 0 && diffDays <= 30;
+        }
+        return true;
+        });
+
+        return filtered.sort((a, b) => {
+        if (sortOrder === "desc") {
+            return b.date.localeCompare(a.date);
+        } else {
+            return a.date.localeCompare(b.date);
+        }
+        });
+    }, [records, filterPeriod, sortOrder]);
+
+    // グラフ用データ（絞り込んだデータの中で日付の昇順に固定）
+    const chartData = useMemo(() => {
+        return [...filteredAndSortedRecords]
         .sort((a, b) => a.date.localeCompare(b.date))
         .map((r) => ({
-        date: r.date.slice(5),
-        sleepHours: calculateSleepHours(r.bedTime, r.wakeTime),
-        mood: Number(r.mood) || null,
+            date: r.date.slice(5),
+            sleepHours: calculateSleepHours(r.bedTime, r.wakeTime),
+            mood: Number(r.mood) || null,
         }));
+    }, [filteredAndSortedRecords]);
 
     if (loading) return <p style={{ padding: "20px" }}>読み込み中...</p>;
 
@@ -158,19 +180,34 @@ import {
             </div>
         </div>
 
-        {/* 記録一覧ヘッダー（整列コントロール） */}
+        {/* 記録一覧ヘッダー（絞り込み・整列） */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
             <h3 style={{ margin: 0 }}>記録一覧</h3>
-            <div className="no-print">
-            <label style={{ fontSize: "0.9rem", fontWeight: "bold", marginRight: "8px" }}>並べ替え:</label>
-            <select
+            <div className="no-print" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <div>
+                <label style={{ fontSize: "0.9rem", fontWeight: "bold", marginRight: "6px" }}>期間:</label>
+                <select
+                value={filterPeriod}
+                onChange={(e) => setFilterPeriod(e.target.value)}
+                style={{ padding: "4px 8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                >
+                <option value="1week">直近1週間分</option>
+                <option value="1month">直近1ヶ月分</option>
+                <option value="all">すべて表示</option>
+                </select>
+            </div>
+
+            <div>
+                <label style={{ fontSize: "0.9rem", fontWeight: "bold", marginRight: "6px" }}>並べ替え:</label>
+                <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as "desc" | "asc")}
                 style={{ padding: "4px 8px", borderRadius: "4px", border: "1px solid #ccc" }}
-            >
+                >
                 <option value="desc">日付が新しい順</option>
                 <option value="asc">日付が古い順</option>
-            </select>
+                </select>
+            </div>
             </div>
         </div>
 
@@ -187,7 +224,7 @@ import {
             </tr>
             </thead>
             <tbody>
-            {sortedRecords.map((r) => (
+            {filteredAndSortedRecords.map((r) => (
                 <tr key={r.rowIndex} style={{ borderBottom: "1px solid #eee" }}>
                 <td style={{ padding: "8px" }}>{r.date}</td>
                 <td style={{ padding: "8px" }}>{r.wakeTime}</td>
