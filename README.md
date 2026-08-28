@@ -8,21 +8,30 @@
 
 ```text
 lifestyle-tracker/
-├── app/
-│   ├── layout.tsx            # 全体共通のレイアウト（ヘッダー/フッターなど）
-│   ├── page.tsx              # トップページ（/）：入力フォーム専用
-│   ├── records/
-│   │   └── page.tsx          # 履歴一覧ページ（/records）：一覧テーブル表示
-│   └── api/
-│       └── records/
-│           └── route.ts      # APIエンドポイント（POST: 保存 / GET: 取得）
-├── components/
-│   ├── RecordForm.tsx        # 入力フォームコンポーネント
-│   ├── RecordTable.tsx       # 履歴テーブルコンポーネント（切り出すとさらにスッキリ！）
-│   └── Navigation.tsx        # ページ移動用ナビゲーション（任意）
-├── types/
-│   └── index.ts              # 型定義（RecordItem など）
-└── public/
+├── public/                 ※初期生成のSVG画像（そのままでOK）
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── records/
+│   │   │       └── route.ts         ★スプレッドシートAPI（GET/POST）
+│   │   ├── records/
+│   │   │   └── page.tsx             ★履歴・グラフ・PDF出力画面 (/records)
+│   │   ├── globals.css              ★全体スタイル＆PDF印刷用CSS
+│   │   ├── layout.tsx               ★アプリ共通レイアウト
+│   │   └── page.tsx                 ★入力画面 (/) ※トップページ
+│   │
+│   ├── components/
+│   │   └── features/
+│   │       └── record-form/         ※フォルダ名「record-form」で統一
+│   │           ├── RecordForm.module.css
+│   │           ├── RecordForm.tsx   ★入力フォーム本体
+│   │           └── useRecordForm.ts ★フォーム状態・送信ロジック
+│   │
+│   └── types/
+│       └── index.ts                 ※共通型定義（あれば使用）
+│
+├── .env.local                       ★環境変数（GOOGLE_...）
+└── (その他設定ファイル群)            ※package.json, tsconfig.json 等
 ```
 
 ## 🛠 使用技術（Tech Stack）
