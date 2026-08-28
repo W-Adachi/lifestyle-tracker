@@ -78,3 +78,31 @@ function getGoogleAuth() {
         );
     }
 }
+
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const rowIndex = searchParams.get("rowIndex"); // 消したい行番号（例: 2）
+
+        if (!rowIndex) {
+        return NextResponse.json({ error: "行番号が指定されていません" }, { status: 400 });
+        }
+
+        const auth = getGoogleAuth();
+        const sheets = google.sheets({ version: "v4", auth });
+
+        // 指定された行の値（A列〜E列）をクリア（削除）
+        await sheets.spreadsheets.values.clear({
+        spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID,
+        range: `シート1!A${rowIndex}:E${rowIndex}`,
+        });
+
+        return NextResponse.json({ success: true }, { status: 200 });
+    } catch (error: any) {
+        console.error("DELETE Error Details:", error);
+        return NextResponse.json(
+        { error: "データの削除に失敗しました", details: error.message },
+        { status: 500 }
+        );
+    }
+}
