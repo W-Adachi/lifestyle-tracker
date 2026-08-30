@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+// Supabaseクライアントの初期化（このファイル内で完結）
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -29,10 +30,10 @@ export async function GET() {
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
-    }
+}
 
-    // POST: 記録の保存
-    export async function POST(request: Request) {
+// POST: 記録の保存
+export async function POST(request: Request) {
     try {
         const body = await request.json();
         const { data, error } = await supabase
@@ -47,5 +48,34 @@ export async function GET() {
         return NextResponse.json(data);
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+}
+
+// DELETE: レコードの削除
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get("id");
+
+        if (!id) {
+        return NextResponse.json(
+            { error: "IDが指定されていません" },
+            { status: 400 }
+        );
+        }
+
+        // Supabaseからレコードを削除
+        const { error } = await supabase
+        .from("records")
+        .delete()
+        .eq("id", id);
+
+        if (error) {
+        throw error;
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

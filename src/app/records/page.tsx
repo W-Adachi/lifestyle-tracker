@@ -9,28 +9,27 @@ interface RecordItem {
     date: string;
     wake_time: string;
     bed_time: string;
-    // 睡眠の詳細
-    sleep_onset?: string;        // 寝つきの良さ ("良" / "悪")
-    mid_awakening?: boolean;    // 途中覚醒 (true / false)
-    morning_refresh?: string;   // 起床時熟眠感 ("良" / "悪")
-    daytime_sleepiness?: boolean;// 日中の眠気 (true / false)
-    // 状態評価
-    fatigue?: string;            // 疲労度 ("小" / "中" / "高")
-    mood?: string;               // 気分 ("良" / "中" / "悪")
-    health?: string;             // 体調 ("良" / "中" / "悪")
-    appetite?: string;           // 食事/食欲 ("良" / "悪")
-    medication?: boolean;        // 服薬 ("済" / "未")
-    sleep_quality?: string;      // 既存フォールバック用
+    sleep_onset?: string;
+    mid_awakening?: boolean;
+    morning_refresh?: string;
+    daytime_sleepiness?: boolean;
+    fatigue?: string;
+    mood?: string;
+    health?: string;
+    appetite?: string;
+    medication?: boolean;
+    sleep_quality?: string;
     memo?: string;
     created_at: string;
 }
 
-const HOURS = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4];
+    const HOURS = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4];
 
 export default function RecordsPage() {
     const [records, setRecords] = useState<RecordItem[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>("");
+    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc"); // 昇順・降順
     const printRef = useRef<HTMLDivElement>(null);
 
     const fetchRecords = async () => {
@@ -39,10 +38,7 @@ export default function RecordsPage() {
         const res = await fetch("/api/lifestyle-records", { cache: "no-store" });
         if (!res.ok) throw new Error("データの取得に失敗しました");
         const data: RecordItem[] = await res.json();
-        const sortedData = [...data].sort(
-            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-        );
-        setRecords(sortedData);
+        setRecords(data);
         } catch (err: any) {
         setError(err.message || "エラーが発生しました");
         } finally {
@@ -53,6 +49,28 @@ export default function RecordsPage() {
     useEffect(() => {
         fetchRecords();
     }, []);
+
+    // 昇順・降順で並べ替えされた配列を取得
+    const sortedRecords = [...records].sort((a, b) => {
+        const timeA = new Date(a.date).getTime();
+        const timeB = new Date(b.date).getTime();
+        return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
+    });
+
+    // レコード削除処理
+    const handleDelete = async (id: number) => {
+        if (!window.confirm("このレコードを削除してもよろしいですか？")) return;
+
+        try {
+        const res = await fetch(`/api/lifestyle-records?id=${id}`, {
+            method: "DELETE",
+        });
+        if (!res.ok) throw new Error("削除に失敗しました");
+        setRecords((prev) => prev.filter((item) => item.id !== id));
+        } catch (err: any) {
+        alert(err.message || "削除時にエラーが発生しました");
+        }
+    };
 
     const extractHour = (timeStr: string | undefined): number | null => {
         if (!timeStr) return null;
@@ -77,14 +95,24 @@ export default function RecordsPage() {
 
     const handleDownloadPDF = async () => {
         if (!printRef.current) return;
+        
+        // PDF出力時は「操作（削除）」列を一時的に非表示にする
+        const actionElements = printRef.current.querySelectorAll(`.${styles.noPrint}`);
+        actionElements.forEach((el) => ((el as HTMLElement).style.display = "none"));
+
         const html2pdf = (await import("html2pdf.js")).default;
         const element = printRef.current;
 
         const opt = {
-        margin: 5,
+        margin: [5, 5, 5, 5],
         filename: "lifestyle_sheet.pdf",
         image: { type: "jpeg" as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+        html2canvas: {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            windowWidth: 1100,
+        },
         jsPDF: { unit: "mm", format: "a4", orientation: "landscape" as const },
         };
 
@@ -92,16 +120,34 @@ export default function RecordsPage() {
         await html2pdf().set(opt).from(element).save();
         } catch (err) {
         console.error(err);
+        } finally {
+        // 出力完了後に表示を元に戻す
+        actionElements.forEach((el) => ((el as HTMLElement).style.display = ""));
         }
     };
 
     return (
         <div className={styles.container}>
-        {/* 操作ボタン */}
+        {/* 操作バー */}
         <div className={styles.actionBar}>
             <Link href="/" className={styles.backLink}>
             ← 入力画面へ戻る
             </Link>
+            
+            {/* 並べ替えコントロール */}
+            <div className={styles.sortBox}>
+            <label htmlFor="sort">日付順:</label>
+            <select
+                id="sort"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+                className={styles.select}
+            >
+                <option value="asc">昇順（古い順）</option>
+                <option value="desc">降順（新しい順）</option>
+            </select>
+            </div>
+
             <button onClick={fetchRecords} className={styles.btnBtn}>
             手動更新
             </button>
@@ -123,36 +169,60 @@ export default function RecordsPage() {
             {/* テーブル構造 */}
             <div className={styles.tableWrapper}>
             <table className={styles.table}>
+                <colgroup>
+                <col style={{ width: "70px" }} />
+                {HOURS.map((h) => (
+                    <col key={h} style={{ width: "16px" }} />
+                ))}
+                <col style={{ width: "35px" }} />
+                <col style={{ width: "22px" }} />
+                <col style={{ width: "22px" }} />
+                <col style={{ width: "22px" }} />
+                <col style={{ width: "22px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "18px" }} />
+                <col style={{ width: "auto" }} />
+                <col className={styles.noPrint} style={{ width: "40px" }} />
+                </colgroup>
                 <thead>
                 <tr className={styles.thHeaderGroup}>
-                    {/* rowSpanを除外し、下部のボーダーを消す */}
-                    <th className={styles.th} style={{ width: "70px", borderBottom: "none", verticalAlign: "bottom", paddingBottom: "2px" }}>日付</th>
+                    <th className={styles.th} style={{ borderBottom: "none", verticalAlign: "bottom", paddingBottom: "2px" }}>日付</th>
                     <th className={styles.th} colSpan={24}>1日の生活パターン (5:00 〜 翌4:00)</th>
-                    <th className={styles.th} style={{ width: "45px", borderBottom: "none", verticalAlign: "bottom", paddingBottom: "2px" }}>睡眠<br />時間</th>
+                    <th className={styles.th} style={{ borderBottom: "none", verticalAlign: "bottom", paddingBottom: "2px" }}>睡眠<br />時間</th>
                     <th className={styles.th} colSpan={4}>夕べの睡眠について</th>
                     <th className={styles.th} colSpan={3}>疲労度</th>
                     <th className={styles.th} colSpan={3}>気分</th>
                     <th className={styles.th} colSpan={3}>体調</th>
                     <th className={styles.th} colSpan={2}>食事</th>
                     <th className={styles.th} colSpan={2}>服薬</th>
-                    <th className={styles.th} style={{ width: "90px", borderBottom: "none", verticalAlign: "bottom", paddingBottom: "2px" }}>メモ</th>
+                    <th className={styles.th} style={{ borderBottom: "none", verticalAlign: "bottom", paddingBottom: "2px" }}>メモ</th>
+                    <th className={`${styles.th} ${styles.noPrint}`} style={{ borderBottom: "none", verticalAlign: "bottom", paddingBottom: "2px" }}>操作</th>
                 </tr>
                 <tr className={styles.thHeaderSub}>
-                    {/* 日付の下半分（空セル・上罫線なし・背景色合わせ） */}
                     <th className={styles.th} style={{ borderTop: "none", backgroundColor: "#e5e7eb" }}></th>
 
                     {HOURS.map((h) => (
                     <th key={h} className={styles.thHour}>{h}</th>
                     ))}
 
-                    {/* 睡眠時間の下半分（空セル・上罫線なし・背景色合わせ） */}
                     <th className={styles.th} style={{ borderTop: "none", backgroundColor: "#e5e7eb" }}></th>
 
                     {/* 睡眠詳細 */}
-                    <th className={styles.th}>寝つき</th>
-                    <th className={styles.th}>中途覚醒</th>
-                    <th className={styles.th}>熟眠感</th>
-                    <th className={styles.th}>日中眠気</th>
+                    <th className={styles.th}>寝つ</th>
+                    <th className={styles.th}>中途</th>
+                    <th className={styles.th}>熟眠</th>
+                    <th className={styles.th}>眠気</th>
                     {/* 疲労度 */}
                     <th className={styles.th}>小</th>
                     <th className={styles.th}>中</th>
@@ -172,19 +242,19 @@ export default function RecordsPage() {
                     <th className={styles.th}>済</th>
                     <th className={styles.th}>未</th>
 
-                    {/* メモの下半分（空セル・上罫線なし・背景色合わせ） */}
                     <th className={styles.th} style={{ borderTop: "none", backgroundColor: "#e5e7eb" }}></th>
+                    <th className={`${styles.th} ${styles.noPrint}`} style={{ borderTop: "none", backgroundColor: "#e5e7eb" }}></th>
                 </tr>
                 </thead>
                 <tbody>
-                {records.length === 0 ? (
+                {sortedRecords.length === 0 ? (
                     <tr>
-                    <td colSpan={44} className={styles.td} style={{ padding: "20px" }}>
+                    <td colSpan={45} className={styles.td} style={{ padding: "20px" }}>
                         記録がありません。
                     </td>
                     </tr>
                 ) : (
-                    records.map((rec) => {
+                    sortedRecords.map((rec) => {
                     const bed = extractHour(rec.bed_time);
                     const wake = extractHour(rec.wake_time);
 
@@ -200,7 +270,7 @@ export default function RecordsPage() {
                             {rec.date}
                         </td>
 
-                        {/* 24時間マス目（黒の塗りつぶし） */}
+                        {/* 24時間マス目 */}
                         {HOURS.map((h) => {
                             const active = isSleepingHour(rec.bed_time, rec.wake_time, h);
                             return (
@@ -218,38 +288,44 @@ export default function RecordsPage() {
                             {sleepHours > 0 ? `${sleepHours}h` : "-"}
                         </td>
 
-                        {/* 夕べの睡眠について (〇/× または 良/悪) */}
+                        {/* 評価項目 */}
                         <td className={styles.checkCell}>{rec.sleep_onset === "悪" ? "×" : "〇"}</td>
                         <td className={styles.checkCell}>{rec.mid_awakening ? "〇" : "×"}</td>
                         <td className={styles.checkCell}>{rec.morning_refresh === "悪" ? "×" : "〇"}</td>
                         <td className={styles.checkCell}>{rec.daytime_sleepiness ? "〇" : "×"}</td>
 
-                        {/* 疲労度 (小/中/高) */}
                         <td className={styles.checkCell}>{rec.fatigue === "小" ? "☑" : "☐"}</td>
                         <td className={styles.checkCell}>{rec.fatigue === "中" ? "☑" : "☐"}</td>
                         <td className={styles.checkCell}>{rec.fatigue === "高" ? "☑" : "☐"}</td>
 
-                        {/* 気分 (良/中/悪) */}
                         <td className={styles.checkCell}>{rec.mood === "良" ? "☑" : "☐"}</td>
                         <td className={styles.checkCell}>{rec.mood === "中" || rec.sleep_quality === "normal" ? "☑" : "☐"}</td>
                         <td className={styles.checkCell}>{rec.mood === "悪" || rec.sleep_quality === "bad" ? "☑" : "☐"}</td>
 
-                        {/* 体調 (良/中/悪) */}
                         <td className={styles.checkCell}>{rec.health === "良" ? "☑" : "☐"}</td>
                         <td className={styles.checkCell}>{rec.health === "中" ? "☑" : "☐"}</td>
                         <td className={styles.checkCell}>{rec.health === "悪" ? "☑" : "☐"}</td>
 
-                        {/* 食事 (良/悪) */}
                         <td className={styles.checkCell}>{rec.appetite === "悪" ? "☐" : "☑"}</td>
                         <td className={styles.checkCell}>{rec.appetite === "悪" ? "☑" : "☐"}</td>
 
-                        {/* 服薬 (済/未) */}
                         <td className={styles.checkCell}>{rec.medication === false ? "☐" : "☑"}</td>
                         <td className={styles.checkCell}>{rec.medication === false ? "☑" : "☐"}</td>
 
                         {/* メモ */}
                         <td className={`${styles.td} ${styles.textSmall} ${styles.textLeft}`}>
                             {rec.memo || "-"}
+                        </td>
+
+                        {/* 削除ボタン（PDFダウンロード時には一時的に自動隠蔽） */}
+                        <td className={`${styles.td} ${styles.noPrint}`}>
+                            <button
+                            onClick={() => handleDelete(rec.id)}
+                            className={styles.btnDelete}
+                            title="削除"
+                            >
+                            削除
+                            </button>
                         </td>
                         </tr>
                     );
