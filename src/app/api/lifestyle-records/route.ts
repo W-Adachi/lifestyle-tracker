@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Vercelでの静的キャッシュを無効化し、常に動的実行させる
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// Supabaseクライアントの初期化（このファイル内で完結）
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -16,7 +14,7 @@ export async function GET() {
         const { data, error } = await supabase
         .from("records")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("date", { ascending: false });
 
         if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -51,6 +49,32 @@ export async function POST(request: Request) {
     }
 }
 
+// PUT: 記録の編集・更新
+export async function PUT(request: Request) {
+    try {
+        const body = await request.json();
+        const { id, ...updateData } = body;
+
+        if (!id) {
+        return NextResponse.json({ error: "IDが指定されていません" }, { status: 400 });
+        }
+
+        const { data, error } = await supabase
+        .from("records")
+        .update(updateData)
+        .eq("id", id)
+        .select();
+
+        if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json(data);
+    } catch (err: any) {
+        return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+}
+
 // DELETE: レコードの削除
 export async function DELETE(request: Request) {
     try {
@@ -64,7 +88,6 @@ export async function DELETE(request: Request) {
         );
         }
 
-        // Supabaseからレコードを削除
         const { error } = await supabase
         .from("records")
         .delete()

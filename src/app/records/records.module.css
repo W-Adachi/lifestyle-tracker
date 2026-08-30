@@ -1,311 +1,347 @@
-/* 画面全体のコンテナ */
 .container {
-    padding: 20px;
-    background-color: #f3f4f6;
-    min-height: 100vh;
-    color: #000000;
+  padding: 20px;
+  background-color: #f3f4f6;
+  min-height: 100vh;
+  color: #000000;
 }
 
-/* 操作バー */
 .actionBar {
-    margin-bottom: 20px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .backLink {
-    color: #2563eb;
-    text-decoration: underline;
-    font-size: 14px;
+  color: #2563eb;
+  text-decoration: underline;
+  font-size: 14px;
 }
 
 .sortBox {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: bold;
 }
 
 .select {
-    padding: 6px 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 13px;
-    background-color: #fff;
-    cursor: pointer;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  background-color: #fff;
+  cursor: pointer;
 }
 
 .btnBtn {
-    padding: 6px 12px;
-    background-color: #ffffff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
+  padding: 6px 12px;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 .btnPrimary {
-    padding: 6px 14px;
-    background-color: #2563eb;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: bold;
-    margin-left: auto;
-    cursor: pointer;
+  padding: 6px 14px;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-left: auto;
+  cursor: pointer;
 }
 
-/* ==========================================
-1. 画面表示用：カード型グリッドレイアウト
-========================================== */
 .cardGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
 }
 
 .card {
-    background-color: #ffffff;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    padding: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .cardHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #f3f4f6;
-    padding-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 8px;
 }
 
 .cardDate {
-    font-size: 16px;
-    font-weight: bold;
-    color: #111827;
+  font-size: 16px;
+  font-weight: bold;
+  color: #111827;
 }
 
 .cardSleepHours {
-    font-size: 13px;
-    font-weight: bold;
-    background-color: #e0e7ff;
-    color: #3730a3;
-    padding: 2px 8px;
-    border-radius: 12px;
+  font-size: 13px;
+  font-weight: bold;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
 .cardSection {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .cardSectionTitle {
-    font-size: 11px;
-    font-weight: bold;
-    color: #6b7280;
-    text-transform: uppercase;
+  font-size: 11px;
+  font-weight: bold;
+  color: #6b7280;
+  text-transform: uppercase;
 }
 
-/* 簡易生活パターンバー */
 .cardTimeBar {
-    display: flex;
-    height: 12px;
-    border-radius: 4px;
-    overflow: hidden;
-    background-color: #f3f4f6;
-    border: 1px solid #d1d5db;
+  display: flex;
+  height: 12px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
 }
 
 .timeSegment {
-    flex: 1;
-    border-right: 1px solid #ffffff;
+  flex: 1;
+  border-right: 1px solid #ffffff;
 }
 
 .timeActive {
-    background-color: #1f2937;
+  background-color: #1f2937;
 }
 
 .timeEmpty {
-    background-color: #f3f4f6;
+  background-color: #f3f4f6;
 }
 
-/* 評価タグ */
 .tagGroup {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .tag {
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background-color: #f3f4f6;
-    color: #374151;
-}
-
-.tagGood {
-    background-color: #d1fae5;
-    color: #065f46;
-}
-
-.tagBad {
-    background-color: #fee2e2;
-    color: #991b1b;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+  color: #374151;
 }
 
 .cardMemo {
-    font-size: 12px;
-    color: #4b5563;
-    background-color: #f9fafb;
-    padding: 8px;
-    border-radius: 4px;
-    word-break: break-all;
+  font-size: 12px;
+  color: #4b5563;
+  background-color: #f9fafb;
+  padding: 8px;
+  border-radius: 4px;
+  word-break: break-all;
 }
 
 .cardFooter {
-    margin-top: auto;
-    display: flex;
-    justify-content: flex-end;
-    padding-top: 8px;
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.btnEdit {
+  padding: 4px 10px;
+  background-color: #4b5563;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .btnDelete {
-    padding: 4px 10px;
-    background-color: #ef4444;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
+  padding: 4px 10px;
+  background-color: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
 }
 
-.btnDelete:hover {
-    background-color: #dc2626;
+/* モーダル */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-/* ==========================================
-2. PDF出力専用（非表示テーブル）
-========================================== */
+.modalContent {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modalRow {
+  display: flex;
+  gap: 10px;
+}
+
+.modalGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* PDF印刷用 */
 .pdfContainer {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
 }
 
 .sheet {
-    padding: 15px;
-    background-color: #ffffff;
-    color: #000000;
-    border: 2px solid #000000;
-    font-family: sans-serif;
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 1050px;
+  padding: 15px;
+  background-color: #ffffff;
+  color: #000000;
+  border: 2px solid #000000;
+  font-family: sans-serif;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1050px;
 }
 
 .sheetHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    border-bottom: 2px solid #000000;
-    padding-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  border-bottom: 2px solid #000000;
+  padding-bottom: 4px;
 }
 
 .title {
-    font-size: 18px;
-    font-weight: bold;
-    margin: 0;
-    color: #000000;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+  color: #000000;
 }
 
 .count {
-    font-size: 11px;
-    color: #000000;
+  font-size: 11px;
+  color: #000000;
 }
 
 .tableWrapper {
-    width: 100%;
+  width: 100%;
 }
 
 .table {
-    width: 100%;
-    border-collapse: collapse;
-    border: 2px solid #000000;
-    font-size: 9px;
-    text-align: center;
-    background-color: #ffffff;
-    color: #000000;
-    table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid #000000;
+  font-size: 9px;
+  text-align: center;
+  background-color: #ffffff;
+  color: #000000;
+  table-layout: fixed;
 }
 
 .thHeaderGroup,
 .thHeaderSub {
-    background-color: #e5e7eb;
-    color: #000000;
+  background-color: #e5e7eb;
+  color: #000000;
 }
 
 .th {
-    border: 1px solid #000000;
-    padding: 2px 1px;
-    color: #000000;
-    font-weight: bold;
-    vertical-align: middle;
-    line-height: 1.1;
+  border: 1px solid #000000;
+  padding: 2px 1px;
+  color: #000000;
+  font-weight: bold;
+  vertical-align: middle;
+  line-height: 1.1;
 }
 
 .thHour {
-    border: 1px solid #000000;
-    padding: 1px 0;
-    color: #000000;
-    font-weight: normal;
+  border: 1px solid #000000;
+  padding: 1px 0;
+  color: #000000;
+  font-weight: normal;
 }
 
 .td {
-    border: 1px solid #000000;
-    padding: 2px 1px;
-    color: #000000;
-    vertical-align: middle;
+  border: 1px solid #000000;
+  padding: 2px 1px;
+  color: #000000;
+  vertical-align: middle;
 }
 
 .tr {
-    height: 24px;
+  height: 24px;
 }
 
 .cellBase {
-    border: 1px solid #9ca3af;
-    padding: 0;
+  border: 1px solid #9ca3af;
+  padding: 0;
 }
 
 .cellEmpty {
-    background-color: #ffffff;
+  background-color: #ffffff;
 }
 
 .cellActive {
-    background-color: #000000 !important;
+  background-color: #000000 !important;
 }
 
 .textSmall {
-    font-size: 8px;
+  font-size: 8px;
 }
 
 .textLeft {
-    text-align: left;
-    padding-left: 3px;
+  text-align: left;
+  padding-left: 3px;
 }
 
 .checkCell {
-    font-size: 9px;
-    padding: 0;
-    vertical-align: middle;
+  font-size: 9px;
+  padding: 0;
+  vertical-align: middle;
 }
