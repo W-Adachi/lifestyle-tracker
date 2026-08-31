@@ -6,7 +6,7 @@
 }
 
 .actionBar {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -34,6 +34,73 @@
   font-size: 13px;
   background-color: #fff;
   cursor: pointer;
+}
+
+.inputDate {
+  padding: 5px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  background-color: #fff;
+}
+
+/* 絞り込みパネル */
+.filterContainer {
+  background-color: #ffffff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.btnReset {
+  padding: 6px 12px;
+  background-color: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+/* 凡例 (画面用) */
+.legendContainer {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: bold;
+  align-items: center;
+  background: #fff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendBox {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  display: inline-block;
 }
 
 .btnBtn {
@@ -122,14 +189,6 @@
 .timeSegment {
   flex: 1;
   border-right: 1px solid #ffffff;
-}
-
-.timeActive {
-  background-color: #1f2937;
-}
-
-.timeEmpty {
-  background-color: #f3f4f6;
 }
 
 .tagGroup {
@@ -239,11 +298,15 @@
 }
 
 .cellOutgoing {
-  background-color: #f59e0b !important; /* 外出：オレンジ */
+  background-color: #f59e0b !important; /* 外出：黄/オレンジ */
 }
 
 .cellStudy {
   background-color: #10b981 !important; /* 学習：緑 */
+}
+
+.cellOverlap {
+  background-color: #8b5cf6 !important; /* 外出✕学習（重複）：紫 */
 }
 
 /* PDF印刷用 */
@@ -271,6 +334,26 @@
   margin-bottom: 8px;
   border-bottom: 2px solid #000000;
   padding-bottom: 4px;
+}
+
+.pdfLegend {
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.pdfLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pdfLegendBox {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  border: 1px solid #000;
 }
 
 .title {
@@ -340,10 +423,6 @@
 
 .cellEmpty {
   background-color: #ffffff;
-}
-
-.cellActive {
-  background-color: #000000 !important;
 }
 
 .textSmall {

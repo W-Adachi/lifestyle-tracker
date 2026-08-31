@@ -35,6 +35,13 @@ export default function RecordsPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [editingRecord, setEditingRecord] = useState<RecordItem | null>(null);
 
+  // 絞り込み用State
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [filterMood, setFilterMood] = useState<string>("all");
+  const [filterHealth, setFilterHealth] = useState<string>("all");
+  const [filterMedication, setFilterMedication] = useState<string>("all");
+
   // 編集モーダル用のチェックBOX用ローカルState
   const [editHasOutgoing, setEditHasOutgoing] = useState(false);
   const [editHasStudy, setEditHasStudy] = useState(false);
@@ -59,7 +66,24 @@ export default function RecordsPage() {
     fetchRecords();
   }, []);
 
-  const sortedRecords = [...records].sort((a, b) => {
+  // 絞り込みロジック
+  const filteredRecords = records.filter((rec) => {
+    // 日付の範囲判定
+    if (startDate && rec.date < startDate) return false;
+    if (endDate && rec.date > endDate) return false;
+    // 気分
+    if (filterMood !== "all" && rec.mood !== filterMood) return false;
+    // 体調
+    if (filterHealth !== "all" && rec.health !== filterHealth) return false;
+    // 服薬
+    if (filterMedication === "done" && !rec.medication) return false;
+    if (filterMedication === "yet" && rec.medication) return false;
+
+    return true;
+  });
+
+  // 並び替え
+  const sortedRecords = [...filteredRecords].sort((a, b) => {
     const timeA = new Date(a.date).getTime();
     const timeB = new Date(b.date).getTime();
     return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
@@ -79,7 +103,6 @@ export default function RecordsPage() {
     }
   };
 
-  // 編集モーダルを開く処理
   const handleOpenEdit = (rec: RecordItem) => {
     setEditingRecord({ ...rec });
     setEditHasOutgoing(!!(rec.outgoing_start && rec.outgoing_end));
@@ -90,7 +113,6 @@ export default function RecordsPage() {
     e.preventDefault();
     if (!editingRecord) return;
 
-    // チェックボックスがOFFの場合は時間データを null に固定する
     const updatePayload = {
       ...editingRecord,
       outgoing_start: editHasOutgoing ? (editingRecord.outgoing_start || "10:00") : null,
@@ -126,7 +148,6 @@ export default function RecordsPage() {
     return isNaN(hour) ? null : hour;
   };
 
-  // 時間帯判定関数（睡眠・外出・学習用）
   const isTimeInRange = (startStr?: string | null, endStr?: string | null, hour?: number) => {
     if (hour === undefined) return false;
     const start = extractHour(startStr);
@@ -166,21 +187,30 @@ export default function RecordsPage() {
     }
   };
 
-  // 時間セルに適用するスタイル判定
+  // 重複に対応したスタイル判定関数
   const getHourCellStyle = (rec: RecordItem, h: number) => {
     const isSleep = isTimeInRange(rec.bed_time, rec.wake_time, h);
     const isOutgoing = isTimeInRange(rec.outgoing_start, rec.outgoing_end, h);
     const isStudy = isTimeInRange(rec.study_start, rec.study_end, h);
 
-    if (isSleep) return styles.cellSleep || styles.cellActive; // 睡眠（青）
-    if (isOutgoing) return styles.cellOutgoing; // 外出（黄）
-    if (isStudy) return styles.cellStudy; // 学習（緑/紫）
+    if (isOutgoing && isStudy) return styles.cellOverlap; // 外出 ✕ 学習の重複（紫）
+    if (isSleep) return styles.cellSleep;               // 睡眠（青）
+    if (isOutgoing) return styles.cellOutgoing;         // 外出（黄）
+    if (isStudy) return styles.cellStudy;               // 学習（緑）
     return styles.cellEmpty;
+  };
+
+  const resetFilters = () => {
+    setStartDate("");
+    setEndDate("");
+    setFilterMood("all");
+    setFilterHealth("all");
+    setFilterMedication("all");
   };
 
   return (
     <div className={styles.container}>
-      {/* 操作バー */}
+      {/* 画面上部操作エリア */}
       <div className={styles.actionBar}>
         <Link href="/" className={styles.backLink}>
           ← 入力画面へ戻る
@@ -200,19 +230,100 @@ export default function RecordsPage() {
         </div>
 
         <button onClick={fetchRecords} className={styles.btnBtn}>
-          更新
+          再読み込み
         </button>
         <button onClick={handleDownloadPDF} className={styles.btnPrimary}>
           PDFダウンロード
         </button>
       </div>
 
+      {/* 絞り込みパネル */}
+      <div className={styles.filterContainer}>
+        <div className={styles.filterGroup}>
+          <label>期間:</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className={styles.inputDate}
+          />
+          <span>〜</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className={styles.inputDate}
+          />
+        </div>
+
+        <div className={styles.filterGroup}>
+          <label>気分:</label>
+          <select
+            value={filterMood}
+            onChange={(e) => setFilterMood(e.target.value)}
+            className={styles.select}
+          >
+            <option value="all">すべて</option>
+            <option value="良">良</option>
+            <option value="中">中</option>
+            <option value="悪">悪</option>
+          </select>
+        </div>
+
+        <div className={styles.filterGroup}>
+          <label>体調:</label>
+          <select
+            value={filterHealth}
+            onChange={(e) => setFilterHealth(e.target.value)}
+            className={styles.select}
+          >
+            <option value="all">すべて</option>
+            <option value="良">良</option>
+            <option value="中">中</option>
+            <option value="悪">悪</option>
+          </select>
+        </div>
+
+        <div className={styles.filterGroup}>
+          <label>服薬:</label>
+          <select
+            value={filterMedication}
+            onChange={(e) => setFilterMedication(e.target.value)}
+            className={styles.select}
+          >
+            <option value="all">すべて</option>
+            <option value="done">済</option>
+            <option value="yet">未</option>
+          </select>
+        </div>
+
+        <button onClick={resetFilters} className={styles.btnReset}>
+          絞り込み解除
+        </button>
+      </div>
+
+      {/* 色の凡例表示（画面用） */}
+      <div className={styles.legendContainer}>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendBox} ${styles.cellSleep}`} /> 睡眠
+        </span>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendBox} ${styles.cellOutgoing}`} /> 外出
+        </span>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendBox} ${styles.cellStudy}`} /> 学習
+        </span>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendBox} ${styles.cellOverlap}`} /> 外出 & 学習（重複）
+        </span>
+      </div>
+
       {loading && <p>読み込み中...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {/* 画面用：カード一覧表示 */}
+      {/* 画面用：カード一覧 */}
       {!loading && sortedRecords.length === 0 ? (
-        <p>記録がありません。</p>
+        <p>該当する記録がありません。</p>
       ) : (
         <div className={styles.cardGrid}>
           {sortedRecords.map((rec) => {
@@ -287,16 +398,10 @@ export default function RecordsPage() {
                 {rec.memo && <div className={styles.cardMemo}>{rec.memo}</div>}
 
                 <div className={styles.cardFooter}>
-                  <button
-                    onClick={() => handleOpenEdit(rec)}
-                    className={styles.btnEdit}
-                  >
+                  <button onClick={() => handleOpenEdit(rec)} className={styles.btnEdit}>
                     編集
                   </button>
-                  <button
-                    onClick={() => handleDelete(rec.id)}
-                    className={styles.btnDelete}
-                  >
+                  <button onClick={() => handleDelete(rec.id)} className={styles.btnDelete}>
                     削除
                   </button>
                 </div>
@@ -335,11 +440,9 @@ export default function RecordsPage() {
                 </div>
               </div>
 
-              {/* 日中の行動（外出・学習）編集 */}
               <div className={styles.modalActionSection}>
                 <label><strong>日中の行動</strong></label>
-                
-                {/* 外出 */}
+
                 <div style={{ marginTop: "8px" }}>
                   <label>
                     <input
@@ -370,7 +473,6 @@ export default function RecordsPage() {
                   )}
                 </div>
 
-                {/* 学習 */}
                 <div style={{ marginTop: "8px" }}>
                   <label>
                     <input
@@ -547,12 +649,29 @@ export default function RecordsPage() {
         </div>
       )}
 
-      {/* PDFダウンロード専用要素 */}
+      {/* PDFダウンロード用コンテナ */}
       <div className={styles.pdfContainer}>
         <div ref={printRef} className={styles.sheet}>
           <div className={styles.sheetHeader}>
             <h1 className={styles.title}>生活リズム記録表</h1>
-            <div className={styles.count}>件数: {records.length} 件</div>
+            
+            {/* PDF用 色の凡例 */}
+            <div className={styles.pdfLegend}>
+              <span className={styles.pdfLegendItem}>
+                <span className={`${styles.pdfLegendBox} ${styles.cellSleep}`} /> 睡眠
+              </span>
+              <span className={styles.pdfLegendItem}>
+                <span className={`${styles.pdfLegendBox} ${styles.cellOutgoing}`} /> 外出
+              </span>
+              <span className={styles.pdfLegendItem}>
+                <span className={`${styles.pdfLegendBox} ${styles.cellStudy}`} /> 学習
+              </span>
+              <span className={styles.pdfLegendItem}>
+                <span className={`${styles.pdfLegendBox} ${styles.cellOverlap}`} /> 重複
+              </span>
+            </div>
+
+            <div className={styles.count}>件数: {sortedRecords.length} 件</div>
           </div>
 
           <div className={styles.tableWrapper}>
@@ -622,7 +741,7 @@ export default function RecordsPage() {
                 </tr>
               </thead>
               <tbody>
-                {records.map((rec) => {
+                {sortedRecords.map((rec) => {
                   const bed = extractHour(rec.bed_time);
                   const wake = extractHour(rec.wake_time);
                   let sleepHours = 0;
@@ -643,32 +762,26 @@ export default function RecordsPage() {
                         {sleepHours > 0 ? `${sleepHours}h` : "-"}
                       </td>
 
-                      {/* 正確な〇×判定 */}
                       <td className={styles.checkCell}>{rec.sleep_onset === "悪" ? "×" : "〇"}</td>
                       <td className={styles.checkCell}>{rec.mid_awakening ? "〇" : "×"}</td>
                       <td className={styles.checkCell}>{rec.morning_refresh === "悪" ? "×" : "〇"}</td>
                       <td className={styles.checkCell}>{rec.daytime_sleepiness ? "〇" : "×"}</td>
 
-                      {/* 疲労度 */}
                       <td className={styles.checkCell}>{rec.fatigue === "小" ? "☑" : "☐"}</td>
                       <td className={styles.checkCell}>{rec.fatigue === "中" ? "☑" : "☐"}</td>
                       <td className={styles.checkCell}>{rec.fatigue === "高" ? "☑" : "☐"}</td>
 
-                      {/* 気分 */}
                       <td className={styles.checkCell}>{rec.mood === "良" ? "☑" : "☐"}</td>
                       <td className={styles.checkCell}>{rec.mood === "中" ? "☑" : "☐"}</td>
                       <td className={styles.checkCell}>{rec.mood === "悪" ? "☑" : "☐"}</td>
 
-                      {/* 体調 */}
                       <td className={styles.checkCell}>{rec.health === "良" ? "☑" : "☐"}</td>
                       <td className={styles.checkCell}>{rec.health === "中" ? "☑" : "☐"}</td>
                       <td className={styles.checkCell}>{rec.health === "悪" ? "☑" : "☐"}</td>
 
-                      {/* 食事 */}
                       <td className={styles.checkCell}>{rec.appetite !== "悪" ? "☑" : "☐"}</td>
                       <td className={styles.checkCell}>{rec.appetite === "悪" ? "☑" : "☐"}</td>
 
-                      {/* 服薬 */}
                       <td className={styles.checkCell}>{rec.medication !== false ? "☑" : "☐"}</td>
                       <td className={styles.checkCell}>{rec.medication === false ? "☑" : "☐"}</td>
 
