@@ -18,6 +18,10 @@ interface RecordItem {
   health?: "良" | "中" | "悪";
   appetite?: "良" | "悪";
   medication?: boolean;
+  outgoing_start?: string | null;
+  outgoing_end?: string | null;
+  study_start?: string | null;
+  study_end?: string | null;
   memo?: string;
   created_at?: string;
 }
@@ -30,6 +34,10 @@ export default function RecordsPage() {
   const [error, setError] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [editingRecord, setEditingRecord] = useState<RecordItem | null>(null);
+
+  // 編集モーダル用のチェックBOX用ローカルState
+  const [editHasOutgoing, setEditHasOutgoing] = useState(false);
+  const [editHasStudy, setEditHasStudy] = useState(false);
 
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -71,21 +79,37 @@ export default function RecordsPage() {
     }
   };
 
+  // 編集モーダルを開く処理
+  const handleOpenEdit = (rec: RecordItem) => {
+    setEditingRecord({ ...rec });
+    setEditHasOutgoing(!!(rec.outgoing_start && rec.outgoing_end));
+    setEditHasStudy(!!(rec.study_start && rec.study_end));
+  };
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingRecord) return;
+
+    // チェックボックスがOFFの場合は時間データを null に固定する
+    const updatePayload = {
+      ...editingRecord,
+      outgoing_start: editHasOutgoing ? (editingRecord.outgoing_start || "10:00") : null,
+      outgoing_end: editHasOutgoing ? (editingRecord.outgoing_end || "12:00") : null,
+      study_start: editHasStudy ? (editingRecord.study_start || "14:00") : null,
+      study_end: editHasStudy ? (editingRecord.study_end || "16:00") : null,
+    };
 
     try {
       const res = await fetch("/api/lifestyle-records", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingRecord),
+        body: JSON.stringify(updatePayload),
       });
 
       if (!res.ok) throw new Error("更新に失敗しました");
 
       setRecords((prev) =>
-        prev.map((item) => (item.id === editingRecord.id ? editingRecord : item))
+        prev.map((item) => (item.id === updatePayload.id ? updatePayload : item))
       );
       setEditingRecord(null);
       alert("データを更新しました");
@@ -94,7 +118,7 @@ export default function RecordsPage() {
     }
   };
 
-  const extractHour = (timeStr: string | undefined): number | null => {
+  const extractHour = (timeStr: string | undefined | null): number | null => {
     if (!timeStr) return null;
     const parts = timeStr.split(":");
     if (parts.length < 1) return null;
@@ -102,15 +126,17 @@ export default function RecordsPage() {
     return isNaN(hour) ? null : hour;
   };
 
-  const isSleepingHour = (bedTimeStr: string, wakeTimeStr: string, hour: number) => {
-    const bed = extractHour(bedTimeStr);
-    const wake = extractHour(wakeTimeStr);
-    if (bed === null || wake === null) return false;
+  // 時間帯判定関数（睡眠・外出・学習用）
+  const isTimeInRange = (startStr?: string | null, endStr?: string | null, hour?: number) => {
+    if (hour === undefined) return false;
+    const start = extractHour(startStr);
+    const end = extractHour(endStr);
+    if (start === null || end === null) return false;
 
-    if (bed > wake) {
-      return hour >= bed || hour < wake;
-    } else if (bed < wake) {
-      return hour >= bed && hour < wake;
+    if (start > end) {
+      return hour >= start || hour < end;
+    } else if (start < end) {
+      return hour >= start && hour < end;
     }
     return false;
   };
@@ -138,6 +164,18 @@ export default function RecordsPage() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // 時間セルに適用するスタイル判定
+  const getHourCellStyle = (rec: RecordItem, h: number) => {
+    const isSleep = isTimeInRange(rec.bed_time, rec.wake_time, h);
+    const isOutgoing = isTimeInRange(rec.outgoing_start, rec.outgoing_end, h);
+    const isStudy = isTimeInRange(rec.study_start, rec.study_end, h);
+
+    if (isSleep) return styles.cellSleep || styles.cellActive; // 睡眠（青）
+    if (isOutgoing) return styles.cellOutgoing; // 外出（黄）
+    if (isStudy) return styles.cellStudy; // 学習（緑/紫）
+    return styles.cellEmpty;
   };
 
   return (
@@ -195,20 +233,15 @@ export default function RecordsPage() {
                 </div>
 
                 <div className={styles.cardSection}>
-                  <div className={styles.cardSectionTitle}>睡眠パターン (5:00 - 翌4:00)</div>
+                  <div className={styles.cardSectionTitle}>生活パターン (5:00 - 翌4:00)</div>
                   <div className={styles.cardTimeBar}>
-                    {HOURS.map((h) => {
-                      const active = isSleepingHour(rec.bed_time, rec.wake_time, h);
-                      return (
-                        <div
-                          key={h}
-                          className={`${styles.timeSegment} ${
-                            active ? styles.timeActive : styles.timeEmpty
-                          }`}
-                          title={`${h}時: ${active ? "睡眠" : "覚醒"}`}
-                        />
-                      );
-                    })}
+                    {HOURS.map((h) => (
+                      <div
+                        key={h}
+                        className={`${styles.timeSegment} ${getHourCellStyle(rec, h)}`}
+                        title={`${h}時`}
+                      />
+                    ))}
                   </div>
                 </div>
 
@@ -219,6 +252,22 @@ export default function RecordsPage() {
                     <span className={styles.tag}>中途覚醒: {rec.mid_awakening ? "〇" : "×"}</span>
                     <span className={styles.tag}>熟眠感: {rec.morning_refresh === "悪" ? "×" : "〇"}</span>
                     <span className={styles.tag}>眠気: {rec.daytime_sleepiness ? "〇" : "×"}</span>
+                  </div>
+                </div>
+
+                <div className={styles.cardSection}>
+                  <div className={styles.cardSectionTitle}>日中の行動</div>
+                  <div className={styles.tagGroup}>
+                    {rec.outgoing_start && rec.outgoing_end ? (
+                      <span className={styles.tag}>🚶 外出: {rec.outgoing_start}〜{rec.outgoing_end}</span>
+                    ) : (
+                      <span className={styles.tag}>🚶 外出: なし</span>
+                    )}
+                    {rec.study_start && rec.study_end ? (
+                      <span className={styles.tag}>📖 学習: {rec.study_start}〜{rec.study_end}</span>
+                    ) : (
+                      <span className={styles.tag}>📖 学習: なし</span>
+                    )}
                   </div>
                 </div>
 
@@ -239,7 +288,7 @@ export default function RecordsPage() {
 
                 <div className={styles.cardFooter}>
                   <button
-                    onClick={() => setEditingRecord(rec)}
+                    onClick={() => handleOpenEdit(rec)}
                     className={styles.btnEdit}
                   >
                     編集
@@ -268,7 +317,7 @@ export default function RecordsPage() {
                   <label>就寝時間</label>
                   <input
                     type="time"
-                    value={editingRecord.bed_time}
+                    value={editingRecord.bed_time || ""}
                     onChange={(e) =>
                       setEditingRecord({ ...editingRecord, bed_time: e.target.value })
                     }
@@ -278,7 +327,7 @@ export default function RecordsPage() {
                   <label>起床時間</label>
                   <input
                     type="time"
-                    value={editingRecord.wake_time}
+                    value={editingRecord.wake_time || ""}
                     onChange={(e) =>
                       setEditingRecord({ ...editingRecord, wake_time: e.target.value })
                     }
@@ -286,7 +335,74 @@ export default function RecordsPage() {
                 </div>
               </div>
 
-              <div className={styles.modalGrid}>
+              {/* 日中の行動（外出・学習）編集 */}
+              <div className={styles.modalActionSection}>
+                <label><strong>日中の行動</strong></label>
+                
+                {/* 外出 */}
+                <div style={{ marginTop: "8px" }}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={editHasOutgoing}
+                      onChange={(e) => setEditHasOutgoing(e.target.checked)}
+                    />
+                    🚶 外出あり
+                  </label>
+                  {editHasOutgoing && (
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                      <input
+                        type="time"
+                        value={editingRecord.outgoing_start || "10:00"}
+                        onChange={(e) =>
+                          setEditingRecord({ ...editingRecord, outgoing_start: e.target.value })
+                        }
+                      />
+                      <span>〜</span>
+                      <input
+                        type="time"
+                        value={editingRecord.outgoing_end || "12:00"}
+                        onChange={(e) =>
+                          setEditingRecord({ ...editingRecord, outgoing_end: e.target.value })
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* 学習 */}
+                <div style={{ marginTop: "8px" }}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={editHasStudy}
+                      onChange={(e) => setEditHasStudy(e.target.checked)}
+                    />
+                    📖 学習あり
+                  </label>
+                  {editHasStudy && (
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                      <input
+                        type="time"
+                        value={editingRecord.study_start || "14:00"}
+                        onChange={(e) =>
+                          setEditingRecord({ ...editingRecord, study_start: e.target.value })
+                        }
+                      />
+                      <span>〜</span>
+                      <input
+                        type="time"
+                        value={editingRecord.study_end || "16:00"}
+                        onChange={(e) =>
+                          setEditingRecord({ ...editingRecord, study_end: e.target.value })
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.modalGrid} style={{ marginTop: "12px" }}>
                 <div>
                   <label>寝つき</label>
                   <select
@@ -408,7 +524,7 @@ export default function RecordsPage() {
                 </div>
               </div>
 
-              <div>
+              <div style={{ marginTop: "12px" }}>
                 <label>メモ</label>
                 <textarea
                   value={editingRecord.memo || ""}
@@ -431,7 +547,7 @@ export default function RecordsPage() {
         </div>
       )}
 
-      {/* PDFダウンロード専用要素（表形式の判定ロジック修正済み） */}
+      {/* PDFダウンロード専用要素 */}
       <div className={styles.pdfContainer}>
         <div ref={printRef} className={styles.sheet}>
           <div className={styles.sheetHeader}>
@@ -517,15 +633,12 @@ export default function RecordsPage() {
                   return (
                     <tr key={rec.id} className={styles.tr}>
                       <td className={styles.td} style={{ fontWeight: "bold" }}>{rec.date}</td>
-                      {HOURS.map((h) => {
-                        const active = isSleepingHour(rec.bed_time, rec.wake_time, h);
-                        return (
-                          <td
-                            key={h}
-                            className={`${styles.cellBase} ${active ? styles.cellActive : styles.cellEmpty}`}
-                          />
-                        );
-                      })}
+                      {HOURS.map((h) => (
+                        <td
+                          key={h}
+                          className={`${styles.cellBase} ${getHourCellStyle(rec, h)}`}
+                        />
+                      ))}
                       <td className={styles.td} style={{ fontWeight: "bold" }}>
                         {sleepHours > 0 ? `${sleepHours}h` : "-"}
                       </td>

@@ -22,6 +22,16 @@ export default function Home() {
   const [appetite, setAppetite] = useState<"良" | "悪">("良");
   const [medication, setMedication] = useState<boolean>(true);
 
+  // 外出の有無と時間
+  const [hasOutgoing, setHasOutgoing] = useState(false);
+  const [outgoingStart, setOutgoingStart] = useState("10:00");
+  const [outgoingEnd, setOutgoingEnd] = useState("12:00");
+
+  // 学習の有無と時間
+  const [hasStudy, setHasStudy] = useState(false);
+  const [studyStart, setStudyStart] = useState("14:00");
+  const [studyEnd, setStudyEnd] = useState("16:00");
+
   const [memo, setMemo] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -44,6 +54,10 @@ export default function Home() {
       health,
       appetite,
       medication,
+      outgoing_start: hasOutgoing ? outgoingStart : null,
+      outgoing_end: hasOutgoing ? outgoingEnd : null,
+      study_start: hasStudy ? studyStart : null,
+      study_end: hasStudy ? studyEnd : null,
       memo,
     };
 
@@ -229,6 +243,71 @@ export default function Home() {
                 <option value="false">未</option>
               </select>
             </div>
+          </div>
+        </fieldset>
+
+        {/* 日中の行動（外出・学習） */}
+        <fieldset className={styles.fieldset}>
+          <legend>日中の行動</legend>
+
+          {/* 外出 */}
+          <div className={styles.actionGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={hasOutgoing}
+                onChange={(e) => setHasOutgoing(e.target.checked)}
+              />
+              🚶‍♂️ 外出あり
+            </label>
+
+            {hasOutgoing && (
+              <div className={styles.timeInputRow}>
+                <input
+                  type="time"
+                  value={outgoingStart}
+                  onChange={(e) => setOutgoingStart(e.target.value)}
+                  className={styles.input}
+                />
+                <span>〜</span>
+                <input
+                  type="time"
+                  value={outgoingEnd}
+                  onChange={(e) => setOutgoingEnd(e.target.value)}
+                  className={styles.input}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* 学習 */}
+          <div className={styles.actionGroup} style={{ marginTop: "16px" }}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={hasStudy}
+                onChange={(e) => setHasStudy(e.target.checked)}
+              />
+              📖 学習あり
+            </label>
+
+            {hasStudy && (
+              <div className={styles.timeInputRow}>
+                <input
+                  type="time"
+                  value={studyStart}
+                  onChange={(e) => setStudyStart(e.target.value)}
+                  className={styles.input}
+                />
+                <span>〜</span>
+                <input
+                  type="time"
+                  value={studyEnd}
+                  onChange={(e) => setStudyEnd(e.target.value)}
+                  className={styles.input}
+                />
+              </div>
+            )}
           </div>
         </fieldset>
 
